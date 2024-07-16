@@ -11,6 +11,8 @@ from videotrans.util import tools
 
 def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", language=None, filename=None,set_p=True,inst=None):
     try:
+        if '中文' or 'zh' in language:
+            language = 'zh'
         api_url=config.params['clone_api'].strip().rstrip('/').lower()
         if not api_url:
             raise Exception("get_voice:"+config.transobj['bixutianxiecloneapi'])
@@ -22,6 +24,7 @@ def get_voice(*,text=None, role=None,rate=None, volume="+0%",pitch="+0Hz", langu
         if text[-1] not in splits:
             text+='.'
         data={"text":text,"language":language}
+        print(data)
 
         # role=clone是直接复制
         if role!='clone':

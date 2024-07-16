@@ -14,6 +14,10 @@ from videotrans.configure import config
 from videotrans.util import tools
 import hashlib
 
+# TODO 工程接入时需考虑临时目录的配置与内存使用回收操作
+rootdir = os.getcwd()
+tmpdir = os.path.join(rootdir, 'tmp')
+os.environ["TEMP"]=tmpdir
 
 def uvr(*,model_name=None, save_root=None, inp_path=None,source="logs",btnkey=None):
     infos = []
