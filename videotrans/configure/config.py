@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 import datetime
 import json
-import os
 import locale
 import logging
+import os
 import re
 import sys
-from queue import Queue
 from pathlib import Path
+from queue import Queue
+
 
 def get_executable_path():
     # 这个函数会返回可执行文件所在的目录
@@ -17,7 +18,7 @@ def get_executable_path():
     else:
         return str(Path.cwd()).replace('\\','/')
 
-#root dir
+# root dir
 rootdir = get_executable_path()
 root_path=Path(rootdir)
 
@@ -26,7 +27,7 @@ temp_path=root_path/"tmp"
 temp_path.mkdir(parents=True, exist_ok=True)
 TEMP_DIR = temp_path.as_posix()
 
-# home 
+# home
 homepath=Path.home()/'Videos/pyvideotrans'
 homepath.mkdir(parents=True, exist_ok=True)
 homedir = homepath.as_posix()
@@ -35,7 +36,7 @@ homedir = homepath.as_posix()
 TEMP_HOME= homedir +"/tmp"
 Path(TEMP_HOME).mkdir(parents=True, exist_ok=True)
 
-# logs 
+# logs
 
 logs_path=root_path/"logs"
 logs_path.mkdir(parents=True, exist_ok=True)
@@ -78,13 +79,13 @@ task_countdown = 60
 # 获取的视频信息 全局缓存
 video_cache = {}
 
-#youtube是否取消了下载
+# youtube是否取消了下载
 canceldown=False
-#工具箱翻译进行状态,ing进行中，其他停止
+# 工具箱翻译进行状态,ing进行中，其他停止
 box_trans="stop"
-#工具箱tts状态
+# 工具箱tts状态
 box_tts="stop"
-#工具箱识别状态
+# 工具箱识别状态
 box_recogn='stop'
 # 中断win背景分离
 separate_status='stop'
@@ -97,16 +98,16 @@ exit_soft=False
 trans_queue=[]
 # 配音队列
 dubb_queue=[]
-#识别队列
+# 识别队列
 regcon_queue=[]
-#合成队列
+# 合成队列
 compose_queue=[]
-#全局任务id列表
+# 全局任务id列表
 unidlist=[]
 # 全局错误
 errorlist={}
 
-#当前可用编码 libx264 h264_qsv h264_nvenc 等
+# 当前可用编码 libx264 h264_qsv h264_nvenc 等
 video_codec=None
 
 # 视频慢速时最小间隔毫秒，默认50ms，小于这个值的视频片段将舍弃，避免出错
@@ -123,53 +124,53 @@ except Exception:
 def parse_init():
     settings = {
         "lang": "",
-        "cuda_qp":False,
+        "cuda_qp": False,
         "dubbing_thread": 3,
-        "trans_thread": 15,
+        "trans_thread": 1,
         "countdown_sec": 30,
         "cuda_com_type": "float32",
         "whisper_threads": 4,
         "whisper_worker": 1,
         "beam_size": 5,
         "best_of": 5,
-        "vad":True,
-        "temperature":0,
-        "condition_on_previous_text":False,
-        "crf":13,
-        "video_codec":264,
-        "retries":2,
-        "chatgpt_model":"gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen",
-        "localllm_model":"qwen",
-        "zijiehuoshan_model":"",
-        "separate_sec":600,
-        "audio_rate":3,
-        "video_rate":20,
-        "initial_prompt_zh":"Please break sentences correctly and retain punctuation",
-        "fontsize":16,
-        "fontname":"黑体",
-        "fontcolor":"&HFFFFFF",
-        "fontbordercolor":"&H000000",
-        "subtitle_bottom":0,
-        "voice_silence":200,
-        "interval_split":10,
-        "preset":'slow',
-        "cjk_len":20,
-        "other_len":50,
-        "backaudio_volume":0.5,
-        "overall_silence":2100,
-        "overall_maxsecs":3,
-        "overall_threshold":0.5,
-        "overall_speech_pad_ms":100,
-        "remove_srt_silence":False,
-        "remove_silence":True,
-        "zh_hant_s":True,
-        "remove_white_ms":100,
-        "vsync":"passthrough",
-        "force_edit_srt":True,
-        "loop_backaudio":False,
-        "azure_lines":150,
-        "chattts_voice":'1111,2222,3333,4444,5555,6666,7777,8888,9999,4099,5099,6653,7869',
-        "cors_run":True
+        "vad": True,
+        "temperature": 0,
+        "condition_on_previous_text": False,
+        "crf": 13,
+        "video_codec": 264,
+        "retries": 2,
+        "chatgpt_model": "gpt-3.5-turbo,gpt-4,gpt-4-turbo,gpt-4-turbo-preview,qwen",
+        "localllm_model": "qwen",
+        "zijiehuoshan_model": "",
+        "separate_sec": 600,
+        "audio_rate": 3,
+        "video_rate": 20,
+        "initial_prompt_zh": "Please break sentences correctly and retain punctuation",
+        "fontsize": 16,
+        "fontname": "黑体",
+        "fontcolor": "&HFFFFFF",
+        "fontbordercolor": "&H000000",
+        "subtitle_bottom": 0,
+        "voice_silence": 200,
+        "interval_split": 10,
+        "preset": 'slow',
+        "cjk_len": 20,
+        "other_len": 50,
+        "backaudio_volume": 0.5,
+        "overall_silence": 2100,
+        "overall_maxsecs": 3,
+        "overall_threshold": 0.5,
+        "overall_speech_pad_ms": 100,
+        "remove_srt_silence": False,
+        "remove_silence": True,
+        "zh_hant_s": True,
+        "remove_white_ms": 100,
+        "vsync": "passthrough",
+        "force_edit_srt": True,
+        "loop_backaudio": False,
+        "azure_lines": 150,
+        "chattts_voice": '1111,2222,3333,4444,5555,6666,7777,8888,9999,4099,5099,6653,7869',
+        "cors_run": True,
     }
     file = root_path/'videotrans/set.ini'
     if file.exists():
@@ -177,7 +178,7 @@ def parse_init():
             with file.open('r', encoding="utf-8") as f:
                 # 遍历.ini文件中的每个section
                 for it in f.readlines():
-                    
+
                     it = it.strip()
                     if not it or it.startswith(';') or it.startswith('#'):
                         continue
@@ -201,8 +202,6 @@ def parse_init():
         if isinstance(settings['fontsize'],str) and settings['fontsize'].find('px')>0:
             settings['fontsize']=int(settings['fontsize'].replace('px',''))
     return settings
-
-
 
 
 # 初始化一个字典变量
@@ -231,10 +230,6 @@ langnamelist = list(langlist.values())
 box_lang = obj['toolbox_lang']
 
 
-
-
-
-
 model_list=re.split('\,|，',settings['model_list'])
 ChatTTS_voicelist=re.split('\,|，',settings['chattts_voice'])
 
@@ -249,8 +244,6 @@ if len(zijiehuoshan_model_list)<1:
     zijiehuoshan_model_list=['']
 
 
-
-
 # 存放 edget-tts 角色列表
 edgeTTS_rolelist = None
 AzureTTS_rolelist = None
@@ -259,19 +252,14 @@ proxy = None
 params = {
     "source_mp4": "",
     "target_dir": "",
-
     "source_language": "en",
     "detect_language": "en",
-
     "target_language": "zh-cn",
     "subtitle_language": "chi",
-
     "cuda": False,
-    "is_separate":False,
-
+    "is_separate": False,
     "voice_role": "No",
     "voice_rate": "0",
-
     "listen_text_zh-cn": "你好啊，我亲爱的朋友，希望你的每一天都是美好愉快的！",
     "listen_text_zh-tw": "你好啊，我親愛的朋友，希望你的每一天都是美好愉快的！",
     "listen_text_en": "Hello, my dear friend. I hope your every day is beautiful and enjoyable!",
@@ -295,47 +283,50 @@ params = {
     "listen_text_kk": "Сәлеметсіз бе, менің қымбатты досым, сендер күн сайын әдемісің деп үміттенемін!",
     "listen_text_cs": "Ahoj, můj drahý příteli, doufám, že jsi každý den krásná!",
     "listen_text_pl": "Witam, mój drogi przyjacielu, mam nadzieję, że jesteś piękna każdego dnia!",
-
     "tts_type": "edgeTTS",  # 所选的tts==edge-tts:openaiTTS|coquiTTS|elevenlabsTTS
-    "tts_type_list": ["edgeTTS","ChatTTS","FishTTS","gtts","AzureTTS", "GPT-SoVITS","clone-voice","openaiTTS", "elevenlabsTTS","TTS-API"],
-
+    "tts_type_list": [
+        "edgeTTS",
+        "ChatTTS",
+        "FishTTS",
+        "gtts",
+        "AzureTTS",
+        "GPT-SoVITS",
+        "clone-voice",
+        "openaiTTS",
+        "elevenlabsTTS",
+        "TTS-API",
+    ],
     "whisper_type": "all",
     "whisper_model": "tiny",
-    "model_type":"faster",
-    "only_video":False,
+    "model_type": "faster",
+    "only_video": False,
     "translate_type": "google",
     "subtitle_type": 0,  # embed soft
     "voice_autorate": False,
     "auto_ajust": True,
-
     "deepl_authkey": "",
-    "deepl_api":"",
+    "deepl_api": "",
     "deeplx_address": "",
     "ott_address": "",
-
+    "nllb_200_address": "",
     "tencent_SecretId": "",
     "tencent_SecretKey": "",
-
     "baidu_appid": "",
     "baidu_miyue": "",
-
     "coquitts_role": "",
     "coquitts_key": "",
-
     "elevenlabstts_role": [],
     "elevenlabstts_key": "",
-
     "clone_api": "",
-    "zh_recogn_api":"",
-
+    "zh_recogn_api": "",
     "chatgpt_api": "",
     "chatgpt_key": "",
     "localllm_api": "",
     "localllm_key": "",
     "zijiehuoshan_key": "",
-    "chatgpt_model":chatgpt_model_list[0],
-    "localllm_model":localllm_model_list[0],
-    "zijiehuoshan_model":zijiehuoshan_model_list[0],
+    "chatgpt_model": chatgpt_model_list[0],
+    "localllm_model": localllm_model_list[0],
+    "zijiehuoshan_model": zijiehuoshan_model_list[0],
     "chatgpt_template": "",
     "localllm_template": "",
     "zijiehuoshan_template": "",
@@ -346,24 +337,18 @@ params = {
     "openaitts_role": openaiTTS_rolelist,
     "gemini_key": "",
     "gemini_template": "",
-
-    "ttsapi_url":"",
-    "ttsapi_voice_role":"",
-    "ttsapi_extra":"pyvideotrans",
-
-    "trans_api_url":"",
-    "trans_secret":"",
-    
-    "azure_speech_region":"",
-    "azure_speech_key":"",
-
-    "gptsovits_url":"",
-    "gptsovits_role":"",
-    "fishtts_url":"",
-    "fishtts_role":"",
-    "gptsovits_extra":"pyvideotrans"
-
-
+    "ttsapi_url": "",
+    "ttsapi_voice_role": "",
+    "ttsapi_extra": "pyvideotrans",
+    "trans_api_url": "",
+    "trans_secret": "",
+    "azure_speech_region": "",
+    "azure_speech_key": "",
+    "gptsovits_url": "",
+    "gptsovits_role": "",
+    "fishtts_url": "",
+    "fishtts_role": "",
+    "gptsovits_extra": "pyvideotrans",
 }
 
 chatgpt_path=root_path/'videotrans/chatgpt.txt'
@@ -376,4 +361,3 @@ params['zijiehuoshan_template']=zijiehuoshan_path.read_text(encoding='utf-8').st
 params['chatgpt_template']=chatgpt_path.read_text(encoding='utf-8').strip()+"\n"
 params['azure_template']=azure_path.read_text(encoding='utf-8').strip()+"\n"
 params['gemini_template']=gemini_path.read_text(encoding='utf-8').strip()+"\n"
-
