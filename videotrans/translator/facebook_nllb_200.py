@@ -41,7 +41,7 @@ def trans(
         .rstrip('/')
         .lower()
         .replace('/translate', '')
-        + '/translate'
+        + '/api/v1/translate'
     )
     url = url.replace('//translate', '/translate')
     if not url.startswith('http'):
